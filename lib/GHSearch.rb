@@ -52,7 +52,7 @@ class GHSearch
 				sleep 10
 			end
 		end
-		writeResult.closeProjectListFile()
+		@writeResult.closeProjectListFile()
 	end
 
 	def runAuthentication()
