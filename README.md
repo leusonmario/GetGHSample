@@ -19,3 +19,5 @@ To run this script, you need to follow the instructions:
   After the execution, it will be created two files: (i) a list of projects based on your seetings, and (ii) a csv file with metrics about the sample.
   </li>
 </ol>
+
+Script based on https://github.com/github/platform-samples/blob/master/api/ruby/traversing-with-pagination/navigating_results.rb
