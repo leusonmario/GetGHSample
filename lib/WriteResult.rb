@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'csv'
+require 'rubygems'
 
 class WriteResult
 
@@ -27,7 +28,7 @@ class WriteResult
 	end
 
 	def writeProjectMetrics(projectName, numberForks, numberStars, size)
-		CSV.open("ProjectMetrics.csv", "a+") do |csv|
+		CSV.open("ProjectMetrics.csv", "ab") do |csv|
 			csv << [projectName, numberForks, numberStars, size]
 		end
 	end

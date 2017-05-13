@@ -15,7 +15,7 @@ class GHSearch
 	def runSearch()
 
 		client = runAuthentication()
-		queryGeneral = "language:#{@language} forks:\">=#{@numberForks}\" stars:\">=#{@numberStars}\""
+		queryGeneral = "language:#{@language} forks:\">#{@numberForks}\" stars:\">#{@numberStars}\""
 		results = client.search_repositories(queryGeneral)
 		total_count = results.total_count
 
@@ -43,8 +43,8 @@ class GHSearch
 						if (projectGradle.total_count <= 0)
 							print name
 							print "\n"
-							@writeResult.writeNewProject(name)
-							@writeResult.writeProjectMetrics(name, project["forks_count"], project["stargazers_count"], project["size"])
+							@writeResult.writeNewProject(name.to_s)
+							@writeResult.writeProjectMetrics(name.to_s, project["forks_count"].to_s, project["stargazers_count"].to_s, project["size"].to_s)
 							sleep 4
 						end
 					end

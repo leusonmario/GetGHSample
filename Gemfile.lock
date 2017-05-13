@@ -7,6 +7,7 @@ GEM
     multipart-post (2.0.0)
     octokit (4.3.0)
       sawyer (~> 0.7.0, >= 0.5.3)
+    require_all (1.4.0)
     sawyer (0.7.0)
       addressable (>= 2.3.5, < 2.5)
       faraday (~> 0.8, < 0.10)
@@ -16,6 +17,7 @@ PLATFORMS
 
 DEPENDENCIES
   octokit (~> 4.3.0)
+  require_all (~> 1.4.0)
 
 BUNDLED WITH
-   1.13.6
+   1.14.6
