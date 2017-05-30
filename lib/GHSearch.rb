@@ -16,7 +16,7 @@ class GHSearch
 
 		client = runAuthentication()
 		queryGeneral = "language:#{@language} forks:\">#{@numberForks}\" stars:\">#{@numberStars}\""
-		results = client.search_repositories(queryGeneral)
+		results = client.search_repositories(queryGeneral,:per_page => 100)
 		total_count = results.total_count
 
 		last_response = client.last_response
@@ -58,7 +58,7 @@ class GHSearch
 	def runAuthentication()
 		return Octokit::Client.new \
 	  		:login    => @login,
-	  		:password => @password
+				:password => @password
 	end
 
 end
