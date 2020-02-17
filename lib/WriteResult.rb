@@ -14,7 +14,7 @@ class WriteResult
 	end
 
 	def writeNewProject(projectName)
-		@projectList.puts("\"#{projectName}\"")
+		@projectList.puts("https://github.com/#{projectName},#{projectName.split("/").last}")
 	end
 
 	def closeProjectListFile()

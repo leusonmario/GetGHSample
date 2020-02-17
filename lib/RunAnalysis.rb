@@ -9,5 +9,5 @@ File.open("properties", "r") do |text|
 	end
 end
 
-search = GHSearch.new(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4])
+search = GHSearch.new(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5])
 search.runSearch()

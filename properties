@@ -1,5 +1,6 @@
-loginGitHub=<login>
+loginGitHub=<username>
 passwordGitHub=<password>
-language=<language>
-numberForks=<500>
-numberStars=<100>
+language=<java>
+numberForks=<200>
+numberStars=<300>
+dataFilter=<2019-02-17>
