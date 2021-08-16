@@ -16,7 +16,28 @@ class GHSearch
 
 	def runSearch()
 
+		# number of commits - (ok)
+		# years from the first adoption of Travis CI - local (ok)
+		# number of forks - (ok)
+		# commits activity measured in terms of number of commits in the last month or other measures - local (ok)
+		# size - (ok)
+		# number of developers - github - authors (ok)
+
 		client = runAuthentication()
+		repo = client.repo 'arouel/uadetector'
+		#Octokit.commits(repo)
+		#commits = client.repo 'randoop/randoop'
+		print("Number of forks : " + repo["forks_count"].to_s)
+		print("\n")
+		print("Number of stars : " + repo["stargazers_count"].to_s)
+		print("\n")
+		print("Size : " + repo["size"].to_s)
+		print("\n")
+		print("Number of issues : " + repo["open_issues_count"].to_s)
+		print("\n")
+		cloneProjectLocally("arouel/uadetector", "uadetector")
+
+=begin
 		queryGeneral = "language:#{@language} forks:\">#{@numberForks}\" stars:\">#{@numberStars}\""
 		results = client.search_repositories(queryGeneral,:per_page => 100)
 		total_count = results.total_count
@@ -53,7 +74,35 @@ class GHSearch
 				sleep 5
 			end
 		end
+=end
 		@writeResult.closeProjectListFile()
+	end
+
+	def cloneProjectLocally(projectName, nameFolder)
+		Dir.chdir "/home/leusonmario/Documentos/PHD/Research/projects/aux"
+		clone = %x(git clone https://github.com/#{projectName} #{nameFolder})
+		Dir.chdir nameFolder
+		numberCommits = %x(git rev-list --count HEAD)
+		numberCommitsLastMonth = %x(git rev-list master --count --since=13/07/2021)
+		numberCommitsLast6Months = %x(git rev-list master --count --since=13/02/2021)
+		numberCommitsLastYear = %x(git rev-list master --count --since=13/08/2020)
+		numberAuthors = %x(git log --format="%an" | sort -u).split("\n").size()
+		tempoTravis = %x(git log --diff-filter=A --pretty=format:'%C(auto)%h%d (%cr) %cn <%ce> %s'  -- .travis.yml).to_s.scan(/([0-9]+ (year(s)* ago))/).last.first.to_s.scan(/[0-9]*/).first
+		print("Number of commits last month : " + numberCommitsLastMonth)
+		print("\n")
+		print("Number of commits last 6 months : " + numberCommitsLast6Months)
+		print("\n")
+		print("Number of commits last year : " + numberCommitsLastYear)
+		print("\n")
+		print("Number of commit authors : " + numberAuthors.to_s)
+		print("\n")
+		print("Tempo de Travis : " + tempoTravis.to_s)
+		#deleteProject(nameFolder)
+	end
+
+	def deleteProject(nameFolder)
+		Dir.chdir "/home/leusonmario/Documentos/PHD/Research/projects/aux"
+		%x(rm -rf #{@nameFolder})
 	end
 
 	def isProjectActive(projectName)
