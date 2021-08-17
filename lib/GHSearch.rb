@@ -16,93 +16,55 @@ class GHSearch
 
 	def runSearch()
 
-		# number of commits - (ok)
-		# years from the first adoption of Travis CI - local (ok)
-		# number of forks - (ok)
-		# commits activity measured in terms of number of commits in the last month or other measures - local (ok)
-		# size - (ok)
-		# number of developers - github - authors (ok)
+		csv_text = File.read(Dir.pwd+'/sample.csv')
 
-		client = runAuthentication()
-		repo = client.repo 'arouel/uadetector'
-		#Octokit.commits(repo)
-		#commits = client.repo 'randoop/randoop'
-		print("Number of forks : " + repo["forks_count"].to_s)
-		print("\n")
-		print("Number of stars : " + repo["stargazers_count"].to_s)
-		print("\n")
-		print("Size : " + repo["size"].to_s)
-		print("\n")
-		print("Number of issues : " + repo["open_issues_count"].to_s)
-		print("\n")
-		cloneProjectLocally("arouel/uadetector", "uadetector")
-
-=begin
-		queryGeneral = "language:#{@language} forks:\">#{@numberForks}\" stars:\">#{@numberStars}\""
-		results = client.search_repositories(queryGeneral,:per_page => 100)
-		total_count = results.total_count
-		
-		last_response = client.last_response
-		number_of_pages = last_response.rels[:last].href.match(/page=(\d+).*$/)[1]
-
-		puts "There are #{total_count} results, on #{number_of_pages} pages!"
-		puts "And here's the first path for every set"
-		puts last_response.data.items.first.path
-		
-		until last_response.rels[:next].nil?
-			last_response = last_response.rels[:next].get
-			sleep 5 # back off from the API rate limiting; don't do this in Real Life
-			break if last_response.rels[:next].nil?
-			last_response.data.items.each do |project|
-			  	name = project["full_name"]
-			  	queryTravis = "in:path repo:#{name} filename:.travis.yml"
-			  	projectTravis = client.search_code(queryTravis)
-			  	if (projectTravis.total_count > 0 and isProjectActive(name.to_s))
-					queryConfig = "in:path repo:#{name} filename:pom.xml"
-			  		projectConfig = client.search_code(queryConfig)
-					if (projectConfig.total_count > 0)
-						queryGradle = "in:path repo:#{name} filename:build.gradle"
-			  			projectGradle = client.search_code(queryGradle)
-						if (projectGradle.total_count <= 0)
-							print name
-							print "\n"
-							@writeResult.writeNewProject(name.to_s)
-							@writeResult.writeProjectMetrics(name.to_s, project["forks_count"].to_s, project["stargazers_count"].to_s, project["size"].to_s)
-						end
-					end
-				end
-				sleep 5
+		indexLine = 0
+		CSV.parse(csv_text, :headers => true).each do |row|
+			client = runAuthentication()
+			repo = client.repo row[0]
+			metrics = cloneProjectLocally(row[0], row[0].to_s.split("/").last)
+			if (indexLine == 2)
+				break
 			end
+			indexLine += 1
+			@writeResult.writeProjectMetrics(row[0].to_s, repo["forks_count"].to_s.to_i, repo["stargazers_count"].to_s.to_i, repo["size"].to_s.to_i, 
+				repo["open_issues_count"].to_s.to_i, metrics[4].to_s.to_i, metrics[0].to_s.to_i, metrics[1].to_s.to_i, metrics[2].to_s.to_i, 
+				metrics[3].to_s.to_i, metrics[5].to_s.to_i)
 		end
-=end
 		@writeResult.closeProjectListFile()
 	end
 
 	def cloneProjectLocally(projectName, nameFolder)
-		Dir.chdir "/home/leusonmario/Documentos/PHD/Research/projects/aux"
+		currentPath = Dir.pwd
 		clone = %x(git clone https://github.com/#{projectName} #{nameFolder})
 		Dir.chdir nameFolder
-		numberCommits = %x(git rev-list --count HEAD)
-		numberCommitsLastMonth = %x(git rev-list master --count --since=13/07/2021)
-		numberCommitsLast6Months = %x(git rev-list master --count --since=13/02/2021)
-		numberCommitsLastYear = %x(git rev-list master --count --since=13/08/2020)
-		numberAuthors = %x(git log --format="%an" | sort -u).split("\n").size()
-		tempoTravis = %x(git log --diff-filter=A --pretty=format:'%C(auto)%h%d (%cr) %cn <%ce> %s'  -- .travis.yml).to_s.scan(/([0-9]+ (year(s)* ago))/).last.first.to_s.scan(/[0-9]*/).first
-		print("Number of commits last month : " + numberCommitsLastMonth)
-		print("\n")
-		print("Number of commits last 6 months : " + numberCommitsLast6Months)
-		print("\n")
-		print("Number of commits last year : " + numberCommitsLastYear)
-		print("\n")
-		print("Number of commit authors : " + numberAuthors.to_s)
-		print("\n")
-		print("Tempo de Travis : " + tempoTravis.to_s)
-		#deleteProject(nameFolder)
+		
+		numberCommits = 0
+		numberCommitsLastMonth = 0
+		numberCommitsLast6Months = 0
+		numberCommitsLastYear = 0
+		numberAuthors = 0
+		tempoTravis = 0
+		
+		begin
+			numberCommits = %x(git rev-list --count HEAD)
+			numberCommitsLastMonth = %x(git rev-list HEAD --count --since=17/07/2021)
+			numberCommitsLast6Months = %x(git rev-list HEAD --count --since=17/02/2021)
+			numberCommitsLastYear = %x(git rev-list master --count --since=17/08/2020)
+			numberAuthors = %x(git log --format="%an" | sort -u).split("\n").size()
+			tempoTravis = %x(git log --diff-filter=A --pretty=format:'%C(auto)%h%d (%cr) %cn <%ce> %s'  -- .travis.yml).to_s.scan(/([0-9]+ (year(s)* ago))/).last.first.to_s.scan(/[0-9]*/).first		
+		rescue => exception
+			print(exception)
+		end
+		deleteProject(nameFolder, currentPath)
+
+		Dir.chdir currentPath
+		return numberCommits, numberCommitsLastMonth, numberCommitsLast6Months, numberCommitsLastYear, numberAuthors, tempoTravis
 	end
 
-	def deleteProject(nameFolder)
-		Dir.chdir "/home/leusonmario/Documentos/PHD/Research/projects/aux"
-		%x(rm -rf #{@nameFolder})
+	def deleteProject(nameFolder, currentPath)
+		Dir.chdir currentPath
+		%x(rm -rf #{nameFolder})
 	end
 
 	def isProjectActive(projectName)
