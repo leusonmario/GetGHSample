@@ -23,11 +23,8 @@ class GHSearch
 			client = runAuthentication()
 			repo = client.repo row[0]
 			metrics = cloneProjectLocally(row[0], row[0].to_s.split("/").last)
-			if (indexLine == 2)
-				break
-			end
 			indexLine += 1
-			@writeResult.writeProjectMetrics(row[0].to_s, repo["forks_count"].to_s.to_i, repo["stargazers_count"].to_s.to_i, repo["size"].to_s.to_i, 
+			@writeResult.writeProjectMetrics(row[0].to_s, repo["forks_count"].to_s.to_i, repo["stargazers_count"].to_s.to_i, repo["size"].to_s.to_i, metrics[6].to_s.to_i, 
 				repo["open_issues_count"].to_s.to_i, metrics[4].to_s.to_i, metrics[0].to_s.to_i, metrics[1].to_s.to_i, metrics[2].to_s.to_i, 
 				metrics[3].to_s.to_i, metrics[5].to_s.to_i)
 		end
@@ -39,6 +36,7 @@ class GHSearch
 		clone = %x(git clone https://github.com/#{projectName} #{nameFolder})
 		Dir.chdir nameFolder
 		
+		linesOfCode = 0
 		numberCommits = 0
 		numberCommitsLastMonth = 0
 		numberCommitsLast6Months = 0
@@ -47,10 +45,11 @@ class GHSearch
 		tempoTravis = 0
 		
 		begin
+			linesOfCode = %x(git ls-files | xargs cat | wc -l)
 			numberCommits = %x(git rev-list --count HEAD)
 			numberCommitsLastMonth = %x(git rev-list HEAD --count --since=17/07/2021)
 			numberCommitsLast6Months = %x(git rev-list HEAD --count --since=17/02/2021)
-			numberCommitsLastYear = %x(git rev-list master --count --since=17/08/2020)
+			numberCommitsLastYear = %x(git rev-list HEAD --count --since=17/08/2020)
 			numberAuthors = %x(git log --format="%an" | sort -u).split("\n").size()
 			tempoTravis = %x(git log --diff-filter=A --pretty=format:'%C(auto)%h%d (%cr) %cn <%ce> %s'  -- .travis.yml).to_s.scan(/([0-9]+ (year(s)* ago))/).last.first.to_s.scan(/[0-9]*/).first		
 		rescue => exception
@@ -59,7 +58,7 @@ class GHSearch
 		deleteProject(nameFolder, currentPath)
 
 		Dir.chdir currentPath
-		return numberCommits, numberCommitsLastMonth, numberCommitsLast6Months, numberCommitsLastYear, numberAuthors, tempoTravis
+		return numberCommits, numberCommitsLastMonth, numberCommitsLast6Months, numberCommitsLastYear, numberAuthors, tempoTravis, linesOfCode
 	end
 
 	def deleteProject(nameFolder, currentPath)
